@@ -1,11 +1,31 @@
-from django.shortcuts import render
+from django.shortcuts import render ,redirect
 from .forms import UserRegisterFrom
 from .models import User , UserProfile
-from django.contrib import messages
+from django.contrib import messages , auth
 from Vendor.forms import VendorRegisterForm
-# Create your views here.
+from .utils import detectRole
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+#check role of vendor:
+def vendor_role_checker(user):
+    if user.role==1:
+        return True
+    else:
+        return PermissionDenied
+
+#check role of Customer
+def Customer_role_checker(user):
+    if user.role==2:
+        return True
+    else:
+        return PermissionDenied
+
+
+
 def UserRegister(request):
-    if request.method=='POST':
+    if request.user.is_authenticated:
+        messages.success(request,'you are loggedin !')
+    elif request.method=='POST':
         form=UserRegisterFrom(request.POST)
         if form.is_valid():
             # user=form.save(commit=False)
@@ -33,7 +53,9 @@ def UserRegister(request):
 
 
 def VendorRegister(request):
-    if request.method=='POST':
+    if request.user.is_authenticated:
+        messages.success(request,'you are loggedin !')
+    elif request.method=='POST':
 
         form=UserRegisterFrom(request.POST)
         v_form=VendorRegisterForm(request.POST,request.FILES)
@@ -64,3 +86,49 @@ def VendorRegister(request):
         'v_form':VendorRegisterForm,
     }
     return render(request,'accounts/VendorRegister.html',context)
+
+
+def login(request):
+    if request.user.is_authenticated:
+        messages.success(request,'you are loggedin !')
+    elif request.method=='POST':
+        email=request.POST['email']
+        password=request.POST['password']
+
+        user = auth.authenticate(email=email,password=password)
+        if user is not None:
+            auth.login(request,user)
+            messages.success(request,'you are loged in succsefully!')
+            return redirect('myAccount')
+        else:
+            messages.error(request,'login field!')
+            return redirect('login')
+
+    return render(request,'accounts/login.html')
+        
+@login_required(login_url='login')
+def myAccount(request):
+    url=detectRole(request.user)
+    return redirect(url)
+
+
+@login_required(login_url='login')
+def CustomerDash(request):
+    if request.user.role==2:
+        return render(request,'accounts/CustomerDash.html')
+    else:
+        raise PermissionDenied
+
+
+@login_required(login_url='login')
+def VendorDash(request):
+    if request.user.role==1:
+        return render(request,'accounts/VendorDash.html')
+    else:
+        raise PermissionDenied
+    
+@login_required(login_url='login')
+def logout(request):
+    auth.logout(request)
+    messages.info(request, 'You are logged out.')
+    return redirect('login')

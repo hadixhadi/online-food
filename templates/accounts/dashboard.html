@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'includes/messages.html' %}
+
+<h1>welcome {{request.user}}</h1>
+
+{% endblock %}
