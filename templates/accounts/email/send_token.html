@@ -1,0 +1,5 @@
+{% autoescape off %}
+
+http://{{domain}}{% url 'active' uidb64=uid token=token %}
+
+{% endautoescape %}
