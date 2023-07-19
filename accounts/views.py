@@ -208,7 +208,7 @@ def reset_password(request):
                 raise PermissionDenied
             user=User.objects.get(pk=uid)
             user.set_password(password)
-            user.is_active=True
+            user.is_active=True 
             user.save()
             messages.success(request,'password changed succsefully!')
             return redirect('login')

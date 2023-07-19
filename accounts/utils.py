@@ -28,3 +28,10 @@ def send_email_token(request,user,subject,email_template):
 	to_email=user.email
 	mail=EmailMessage(subject,messages,from_email,to=[to_email])
 	mail.send()
+
+def send_approval_email(subject,template,context):
+	message=render_to_string(template,context)
+	from_email=settings.EMAIL_HOST
+	to_email=context['to_email']
+	mail=EmailMessage(subject,message,from_email,to=[to_email])
+	mail.send()
